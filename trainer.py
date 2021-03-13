@@ -1,4 +1,5 @@
 from Agents.pg_agent import PGAgent
+from Agents.ac_agent import ACAgent
 from Policies.MLP_policy import MLPPolicy
 import time
 import gym
@@ -22,7 +23,7 @@ class Trainer(object):
         args.ob_dim = self.env.observation_space.shape[0]
 
         # Make agent
-        self.agent = PGAgent(args)
+        self.agent = ACAgent(args)
 
     def train(self):
         for itr in range(self.n_iter):
