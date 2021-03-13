@@ -7,13 +7,9 @@ class RandomPolicy(BasePolicy):
 
     def __init__(self, ac_space, **kwargs):
        super().__init__(**kwargs)
-       print(ac_space.shape)
        self.ac_space = ac_space
        self.is_discrete = isinstance(ac_space, gym.spaces.Discrete)
        self.ac_dim = ac_space.n if self.is_discrete else ac_space.shape[0]
-
-    def build_graph(self):
-        raise NotImplementedError
 
     def get_action(self, obs):
         if self.is_discrete:
@@ -29,5 +25,5 @@ class RandomPolicy(BasePolicy):
     def save(self, filepath):
     	raise NotImplementedError
 
-    def restore(self, filepath):
+    def load(self, filepath):
     	raise NotImplementedError

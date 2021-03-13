@@ -1,54 +1,43 @@
+from Agents.pg_agent import PGAgent
+from Policies.MLP_policy import MLPPolicy
 import time
 import gym
+import numpy as np
 
 from Policies.random_policy import RandomPolicy
+import utils.utils as utils
 
 class Trainer(object):
 
-    def __init__(self, name):
-        seed = 0
+    def __init__(self, args):
 
         # Make the gym environment
-        self.env = gym.make(name)
-        self.env.seed(seed)
-        self.policy = RandomPolicy(self.env.action_space)
+        self.env = gym.make(args.env)
+        self.env.seed(args.seed)
 
+        self.n_iter = args.n_iter
 
-    def sample_trajectory(self, render=False, render_mode=('rgb_array')):
-        env = self.env
-        ob = env.reset()
-        policy = self.policy
+        args.discrete = isinstance(self.env.action_space, gym.spaces.Discrete)
+        args.ac_dim = self.env.action_space.n if args.discrete else 0
+        args.ob_dim = self.env.observation_space.shape[0]
 
-        obs, acs, rewards, next_obs, terminals, image_obs = [], [], [], [], [], []
-        steps = 0
-        while True:
-            if render:
-                if 'rgb_array' in render_mode:
-                    if hasattr(env, 'sim'):
-                        image_obs.append(env.sim.render(camera_name='track', height=500, width=500)[::-1])
-                    else:
-                        image_obs.append(env.render(mode=render_mode))
-                if 'human' in render_mode:
-                    env.render(mode=render_mode)
-            
-            obs.append(ob)
-            ac = policy.get_action(ob)
+        # Make agent
+        self.agent = PGAgent(args)
 
-            ac = ac[0]
-            acs.append(ac)
+    def train(self):
+        for itr in range(self.n_iter):
+            print('************ Iteration {} ************'.format(itr))
+            obs, acs, rewards, next_obs, terminals, image_obs = utils.sample_trajectory(self.env, self.agent.actor, 200, True)
+            obs = np.array(obs)
+            acs = np.array(acs)
+            rewards = np.array(rewards)
+            next_obs = np.array(next_obs)
+            terminals = np.array(terminals)
+            loss = self.agent.train(obs, acs, rewards, next_obs, terminals)
 
-            ob, r, done, _ = env.step(ac)
+            self.logging(itr, rewards)
 
-            steps += 1
-            next_obs.append(ob)
-            rewards.append(r)
+    def logging(self, itr, rewards):
+        print('Rewards: {}'.format(np.sum(rewards)))        
+        print('EpLen: {}'.format(len(rewards)))
 
-            rollout_done = done
-            terminals.append(rollout_done)
-
-            if rollout_done:
-                print('finished')
-                break
-        
-        return obs, acs, rewards, next_obs, terminals, image_obs
-        
