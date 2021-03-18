@@ -13,10 +13,9 @@ class RandomPolicy(BasePolicy):
 
     def get_action(self, obs):
         if self.is_discrete:
-            ac = [random.randint(0, self.ac_dim-1)] 
+            ac = random.randint(0, self.ac_dim-1)
         else:
-            ac = [self.ac_space.sample()]
-
+            ac = self.ac_space.sample()
         return ac
 
     def update(self, obs, acs):
