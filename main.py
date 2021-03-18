@@ -3,6 +3,7 @@ from trainer import Trainer
 def main(args):
     trainer = Trainer(args)
     trainer.train()
+    trainer.test()
     
 
 if __name__ == "__main__":
@@ -11,7 +12,7 @@ if __name__ == "__main__":
     parser.add_argument('--env', type=str, default='CartPole-v0')
     parser.add_argument('--seed', type=int, default=0)
 
-    parser.add_argument('--n_iter', type=int, default=2000)
+    parser.add_argument('--n_iter', type=int, default=20000)
 
     parser.add_argument('--n_layers', type=int, default=2)
     parser.add_argument('--size', type=int, default=64)

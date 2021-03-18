@@ -1,5 +1,5 @@
 from typing import Union
-
+import gym
 
 
 def sample_trajectory(env, policy, max_path_length, render=False, render_mode=('rgb_array')):
@@ -33,3 +33,11 @@ def sample_trajectory(env, policy, max_path_length, render=False, render_mode=('
             break
     
     return obs, acs, rewards, next_obs, terminals, image_obs
+
+
+def get_space_dim(space):
+    if isinstance(space, gym.spaces.Discrete):
+        dim = space.n
+    else:
+        dim = space.shape[0]
+    return dim

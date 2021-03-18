@@ -1,5 +1,6 @@
 from Agents.pg_agent import PGAgent
 from Agents.ac_agent import ACAgent
+from Agents.q_learning_agent import QLAgent
 from Policies.MLP_policy import MLPPolicy
 import time
 import gym
@@ -19,16 +20,16 @@ class Trainer(object):
         self.n_iter = args.n_iter
 
         args.discrete = isinstance(self.env.action_space, gym.spaces.Discrete)
-        args.ac_dim = self.env.action_space.n if args.discrete else 0
-        args.ob_dim = self.env.observation_space.shape[0]
+        args.ac_dim = utils.get_space_dim(self.env.action_space)
+        args.ob_dim = utils.get_space_dim(self.env.observation_space)
 
         # Make agent
-        self.agent = ACAgent(args)
+        self.agent = QLAgent(args, self.env)
 
     def train(self):
         for itr in range(self.n_iter):
             print('************ Iteration {} ************'.format(itr))
-            obs, acs, rewards, next_obs, terminals, image_obs = utils.sample_trajectory(self.env, self.agent.actor, 200, True)
+            obs, acs, rewards, next_obs, terminals, image_obs = utils.sample_trajectory(self.env, self.agent.actor, 200, True, render_mode=('human'))
             obs = np.array(obs)
             acs = np.array(acs)
             rewards = np.array(rewards)
@@ -37,6 +38,15 @@ class Trainer(object):
             loss = self.agent.train(obs, acs, rewards, next_obs, terminals)
 
             self.logging(itr, rewards)
+    
+    def test(self):
+        ep_rewards = []
+        for itr in range(1000):
+            obs, acs, rewards, next_obs, terminals, image_obs = utils.sample_trajectory(self.env, self.agent, 200, True, render_mode=('human'))
+            ep_rewards.append(np.sum(rewards))
+
+        print("Average Rewards: {}".format(np.average(ep_rewards)))
+
 
     def logging(self, itr, rewards):
         print('Rewards: {}'.format(np.sum(rewards)))        
