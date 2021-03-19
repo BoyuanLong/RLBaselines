@@ -1,5 +1,6 @@
 from Agents.base_agent import BaseAgent
 from Policies.q_tabular_policy import QPolicy
+import os
 
 class QLAgent(BaseAgent):
     def __init__(self, args):
@@ -17,7 +18,13 @@ class QLAgent(BaseAgent):
 
     def train(self, obs, acs, rews, next_obs, terminals):
         self.actor.update(obs, acs, rews, next_obs, terminals)
-
     
     def get_action(self, ob):
         return self.actor.get_action(ob)
+    
+    def save(self, filepath):
+        filepath = os.path.join(filepath, 'QLearning', 'expert.npy')
+        self.actor.save(filepath)
+
+    def load(self, filepath):
+        self.actor.load(filepath)

@@ -45,8 +45,11 @@ class QPolicy(BasePolicy):
         return np.sum(rews)
 
     def save(self, filepath):
-        raise NotImplementedError
-        torch.save(self.state_dict(), filepath)
+        np.save(filepath, self.q_table)
+        print(self.q_table)
+        print("Q Table has been saved to file: {}.".format(filepath))
 
     def load(self, filepath):
-    	raise NotImplementedError
+        self.q_table = np.load(filepath)
+        print("Q Table has been loaded from file: {}".format(filepath))
+        print(self.q_table)

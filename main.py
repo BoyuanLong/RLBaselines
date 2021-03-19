@@ -1,8 +1,9 @@
 from trainer import Trainer
+from offline_trainer import Trainer
 
 def main(args):
     trainer = Trainer(args)
-    trainer.train()
+    # trainer.train()
     trainer.test()
     
 
@@ -26,6 +27,6 @@ if __name__ == "__main__":
     # Q-Learning hparams
     parser.add_argument('--e_greedy', type=bool, default=True)
     parser.add_argument('--e_decay_rate', type=float, default=1e-6)
-    
+
     args = parser.parse_args()
     main(args)

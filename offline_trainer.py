@@ -28,6 +28,8 @@ class Trainer(object):
 
         # Make agent
         self.agent = QLAgent(args)
+        expert_path = os.path.join('.', 'Experts', 'QLearning', 'expert.npy')
+        self.agent.load(expert_path)
 
         # Training Trajectory Collect Policy
         if args.collect_policy == 'random':
@@ -58,8 +60,6 @@ class Trainer(object):
             ep_rewards.append(np.sum(rewards))
 
         print("Average Total Rewards: {}".format(np.mean(ep_rewards)))
-        expert_dir = os.path.join('.', 'Experts')
-        self.agent.save(expert_dir)
 
 
     def logging(self, itr, rewards):
