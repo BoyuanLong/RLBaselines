@@ -7,5 +7,5 @@ python main.py --env "FrozenLake-v0" --learning_rate 0.1 --collect_policy agent 
 
 ### Q Learning w/ random exploration
 ```
-python main.py --env "FrozenLake-v0" --learning_rate 0.1 --collect_policy random --render_mode none --e_decay_rate 1e-5
+python main.py --env "FrozenLake-v0" --learning_rate 0.1 --collect_policy random --render_mode none --e_greedy False
 ```

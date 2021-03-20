@@ -40,7 +40,7 @@ class QPolicy(BasePolicy):
             self.q_table[obs[i]][acs[i]] = (1 - self.lr) * self.q_table[obs[i]][acs[i]] \
                 + self.lr * (rews[i] + self.gamma * q_next)
         
-        self.epsilon -= self.e_decay_rate
+        self.epsilon = max(self.epsilon - self.e_decay_rate, 0.0)
 
         return np.sum(rews)
 

@@ -1,5 +1,6 @@
 from typing import Union
 import gym
+import numpy as np
 
 
 def sample_trajectory(env, policy, max_path_length, render=False, render_mode=('rgb_array')):
@@ -41,3 +42,17 @@ def get_space_dim(space):
     else:
         dim = space.shape[0]
     return dim
+
+def Path(obs, image_obs, acs, rewards, next_obs, terminals):
+    """
+        Take info (separate arrays) from a single rollout
+        and return it in a single dictionary
+    """
+    if image_obs != []:
+        image_obs = np.stack(image_obs, axis=0)
+    return {"observation" : np.array(obs, dtype=np.int),
+            "image_obs" : np.array(image_obs, dtype=np.uint8),
+            "reward" : np.array(rewards, dtype=np.int),
+            "action" : np.array(acs, dtype=np.int),
+            "next_observation": np.array(next_obs, dtype=np.int),
+            "terminal": np.array(terminals, dtype=np.float32)}
