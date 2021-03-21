@@ -9,3 +9,8 @@ python main.py --env "FrozenLake-v0" --learning_rate 0.1 --collect_policy agent 
 ```
 python main.py --env "FrozenLake-v0" --learning_rate 0.1 --collect_policy random --render_mode none --e_greedy False
 ```
+
+### Offline Q Learning (SARSA update)
+```
+python main.py --env "FrozenLake8x8-v0" --learning_rate 0.1 --collect_policy agent --render_mode none --e_decay_rate 1e-5 --mode offline
+```

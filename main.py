@@ -1,8 +1,12 @@
 from Trainers.offline_trainer import OfflineTrainer
+from Trainers.trainer import Trainer
 
 def main(args):
-    trainer = OfflineTrainer(args)
-    trainer.generate_buffer()
+    if args.mode == 'online':
+        trainer = Trainer(args)
+    else:
+        trainer = OfflineTrainer(args)
+        trainer.generate_buffer()
     trainer.train()
     trainer.test()
     
@@ -12,6 +16,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', type=str, default='CartPole-v0')
     parser.add_argument('--seed', type=int, default=0)
+
+    parser.add_argument('--mode', type=str, default='online', choices=['online', 'offline'])
 
     parser.add_argument('--train_iter', type=int, default=20000)
     parser.add_argument('--test_iter', type=int, default=1000)
@@ -31,6 +37,7 @@ if __name__ == "__main__":
 
     # Buffer
     parser.add_argument('--buffer_size', type=int, default=10000)
+
 
     args = parser.parse_args()
     main(args)
