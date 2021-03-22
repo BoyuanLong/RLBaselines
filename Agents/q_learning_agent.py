@@ -23,7 +23,10 @@ class QLAgent(BaseAgent):
         return self.actor.get_action(ob)
     
     def save(self, filepath):
-        filepath = os.path.join(filepath, 'QLearning', 'expert.npy')
+        filepath = os.path.join(filepath, 'QLearning')
+        if not os.path.exists(filepath):
+            os.makedirs(filepath)
+        filepath = os.path.join(filepath, 'expert.npy')
         self.actor.save(filepath)
 
     def load(self, filepath):

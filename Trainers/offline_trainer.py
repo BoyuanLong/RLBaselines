@@ -5,6 +5,7 @@ from Policies.MLP_policy import MLPPolicy
 import time, random, os
 import gym
 import numpy as np
+import matplotlib.pyplot as plt
 
 from Policies.random_policy import RandomPolicy
 from ReplayBuffers.offline_buffer import OfflineBuffer
@@ -17,7 +18,8 @@ class OfflineTrainer(object):
         # Make the gym environment
         self.env = gym.make(args.env)
         self.env.seed(args.seed)
-        random.seed(args.seed)
+
+        self.save_model = args.save_model
 
         # Num of iterations
         self.train_iter = args.train_iter
@@ -26,6 +28,9 @@ class OfflineTrainer(object):
         args.discrete = isinstance(self.env.action_space, gym.spaces.Discrete)
         args.ac_dim = utils.get_space_dim(self.env.action_space)
         args.ob_dim = utils.get_space_dim(self.env.observation_space)
+
+        self.ob_dim = args.ob_dim
+        self.ac_dim = args.ac_dim
 
         # Make agent
         self.agent = QLAgent(args)
@@ -65,11 +70,24 @@ class OfflineTrainer(object):
     def test(self):
         self.agent.testing()
         ep_rewards = []
+        state_feq = np.zeros(self.ob_dim)
         for itr in range(self.test_iter):
             obs, acs, rewards, next_obs, terminals, image_obs = utils.sample_trajectory(self.env, self.agent.actor, 200, True, render_mode=())
             ep_rewards.append(np.sum(rewards))
 
+            for i in range(len(obs)):
+                state_feq[obs[i]] += 1
+                if terminals[i]:
+                    state_feq[next_obs[i]] += 1
+
+        plt.bar(list(range(self.ob_dim)), state_feq, log=True)
+        plt.savefig('./img2.png')
+        plt.close()
+
         print("Average Total Rewards: {}".format(np.mean(ep_rewards)))
+        if self.save_model:
+            expert_dir = os.path.join('.', 'Experts', 'Offline')
+            self.agent.save(expert_dir)
 
 
     def logging(self, itr, rewards):

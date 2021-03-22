@@ -1,6 +1,7 @@
 from typing import Union
 import gym
 import numpy as np
+import random
 
 
 def sample_trajectory(env, policy, max_path_length, render=False, render_mode=('rgb_array')):
@@ -56,3 +57,7 @@ def Path(obs, image_obs, acs, rewards, next_obs, terminals):
             "action" : np.array(acs, dtype=np.int),
             "next_observation": np.array(next_obs, dtype=np.int),
             "terminal": np.array(terminals, dtype=np.float32)}
+
+def global_seed(seed):
+    np.random.seed(seed)
+    random.seed(seed)

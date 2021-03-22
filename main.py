@@ -1,7 +1,9 @@
 from Trainers.offline_trainer import OfflineTrainer
 from Trainers.trainer import Trainer
+from utils.utils import global_seed
 
 def main(args):
+    global_seed(args.seed)
     if args.mode == 'online':
         trainer = Trainer(args)
     else:
@@ -18,6 +20,7 @@ if __name__ == "__main__":
     parser.add_argument('--seed', type=int, default=0)
 
     parser.add_argument('--mode', type=str, default='online', choices=['online', 'offline'])
+    parser.add_argument('--save_model', type=bool ,default=False)
 
     parser.add_argument('--train_iter', type=int, default=20000)
     parser.add_argument('--test_iter', type=int, default=1000)
