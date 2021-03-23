@@ -6,6 +6,7 @@ import time, random, os
 import gym
 import numpy as np
 import matplotlib.pyplot as plt
+from utils.plot_utils import heatmap
 
 from Policies.random_policy import RandomPolicy
 from ReplayBuffers.offline_buffer import OfflineBuffer
@@ -56,6 +57,26 @@ class OfflineTrainer(object):
             obs, acs, rewards, next_obs, terminals, image_obs = utils.sample_trajectory(self.env, self.collect_policy, 200, True, render_mode=())
             self.buffer.add_trajectory(utils.Path(obs, image_obs, acs, rewards, next_obs, terminals))
         print("Offline dataset Generated")
+        state_freq = np.zeros(self.ob_dim)
+        for i in range(len(self.buffer.obs)):
+            state_freq[self.buffer.obs[i]] += 1
+            if self.buffer.terminals[i]:
+                state_freq[self.buffer.next_obs[i]] += 1
+        state_freq = state_freq.reshape(8,8)
+        fix, ax = plt.subplots()
+
+        im, cbar = heatmap(state_freq, np.arange(8), np.arange(8), ax=ax, cmap="YlGn")
+
+        for i in range(8):
+            for j in range(8):
+                text = ax.text(j, i, "{:.0f}".format(state_freq[i, j]),
+                            ha="center", va="center", color="black")
+
+        # plt.show()
+        ax.set_title("Offline Buffer State Frequency")
+        plt.savefig('./state_freq_buffer_{}.png'.format(1))
+        plt.close()
+
 
 
     def train(self):
