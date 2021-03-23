@@ -43,10 +43,12 @@ if __name__ == "__main__":
     # Buffer
     parser.add_argument('--buffer_size', type=int, default=10000)
 
+    # Logging
+    parser.add_argument('--log_path', type=str, default='./logging')
 
     args = parser.parse_args()
 
-    data_path = os.path.join('.', 'logging')
+    data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), args.log_path)
     if not os.path.exists(data_path):
         os.makedirs(data_path)
     logdir = "{}_{}_{}".format(args.env, args.mode, time.strftime("%d-%m-%Y_%H-%M-%S"))

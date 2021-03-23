@@ -11,6 +11,7 @@ from Policies.random_policy import RandomPolicy
 import utils.utils as utils
 from utils.logger import Logger
 from collections import OrderedDict
+from ReplayBuffers.replay_buffer import ReplayBuffer
 
 class Trainer(object):
 
@@ -25,6 +26,7 @@ class Trainer(object):
         # Num of iterations
         self.train_iter = args.train_iter
         self.test_iter = args.test_iter
+        self.batch_size = args.batch_size
 
         args.discrete = isinstance(self.env.action_space, gym.spaces.Discrete)
         args.ac_dim = utils.get_space_dim(self.env.action_space)
@@ -33,7 +35,10 @@ class Trainer(object):
         self.ac_dim = args.ac_dim
 
         # Make agent
-        self.agent = QLAgent(args)
+        self.agent = PGAgent(args)
+
+        # Replay Buffer
+        self.buffer = ReplayBuffer(args.buffer_size)
 
         # Training Trajectory Collect Policy
         if args.collect_policy == 'random':
@@ -49,46 +54,57 @@ class Trainer(object):
         self.agent.training()
         for itr in range(self.train_iter):
             print('************ Iteration {} ************'.format(itr))
-            obs, acs, rewards, next_obs, terminals, image_obs = utils.sample_trajectory(self.env, self.collect_policy, 200, True, render_mode=())
-            obs = np.array(obs)
-            acs = np.array(acs)
-            rewards = np.array(rewards)
-            next_obs = np.array(next_obs)
-            terminals = np.array(terminals)
-            loss = self.agent.train(obs, acs, rewards, next_obs, terminals)
+            paths, _ = utils.sample_trajectories(self.env, self.collect_policy, self.batch_size, 200, True, render_mode=())
+            self.buffer.add_trajectory(paths)
 
-            self.logging(itr, rewards)
+            observations, actions, unconcatenated_rews, next_observations, terminals = self.buffer.sample_recent_data(self.batch_size, concat_rew=False)
+            loss = self.agent.train(
+                observations, actions, unconcatenated_rews, next_observations, terminals
+            )
+
+            self.logging(itr, paths)
     
     def test(self):
         self.agent.testing()
         ep_rewards = []
-        state_feq = np.zeros(self.ob_dim)
         for itr in range(self.test_iter):
-            obs, acs, rewards, next_obs, terminals, image_obs = utils.sample_trajectory(self.env, self.agent.actor, 200, True, render_mode=())
-            ep_rewards.append(np.sum(rewards))
+            paths = utils.sample_trajectory(self.env, self.agent.actor, 200, True, render_mode=())
+            # ep_rewards.append(np.sum(rewards))
 
-            for i in range(len(obs)):
-                state_feq[obs[i]] += 1
-                if terminals[i]:
-                    state_feq[next_obs[i]] += 1
-
-        plt.bar(list(range(self.ob_dim)), state_feq, log=True)
-        plt.savefig('./img.png')
-        plt.close()
-
-        print("Average Total Rewards: {}".format(np.mean(ep_rewards)))
+        # print("Average Total Rewards: {}".format(np.mean(ep_rewards)))
         if self.save_model:
             expert_dir = os.path.join('.', 'Experts')
             self.agent.save(expert_dir)
 
 
-    def logging(self, itr, rewards):
-        print('Rewards: {}'.format(np.sum(rewards)))        
-        print('EpLen: {}'.format(len(rewards)))
+    def logging(self, itr, train_paths):
+        eval_paths, _ = utils.sample_trajectories(self.env, self.collect_policy, self.batch_size, 200, True, render_mode=())
+
+        if itr % 300 == 0:
+            _ = utils.sample_n_trajectories(self.env, self.collect_policy, 5, 200, True, render_mode=('human'))
+
+        train_returns = [path["reward"].sum() for path in train_paths]
+        eval_returns = [eval_path["reward"].sum() for eval_path in eval_paths]
+
+        train_ep_lens = [len(path["reward"]) for path in train_paths]
+        eval_ep_lens = [len(eval_path["reward"]) for eval_path in eval_paths]
 
         logs = OrderedDict()
-        logs['Return'] = np.sum(rewards)
-        logs['EpLen'] = len(rewards)
+        logs["Eval_AverageReturn"] = np.mean(eval_returns)
+        logs["Eval_StdReturn"] = np.std(eval_returns)
+        logs["Eval_MaxReturn"] = np.max(eval_returns)
+        logs["Eval_MinReturn"] = np.min(eval_returns)
+        logs["Eval_AverageEpLen"] = np.mean(eval_ep_lens)
+
+        logs["Train_AverageReturn"] = np.mean(train_returns)
+        logs["Train_StdReturn"] = np.std(train_returns)
+        logs["Train_MaxReturn"] = np.max(train_returns)
+        logs["Train_MinReturn"] = np.min(train_returns)
+        logs["Train_AverageEpLen"] = np.mean(train_ep_lens)
+
+        # logs["Train_EnvstepsSoFar"] = self.total_envsteps
+        # logs["TimeSinceStart"] = time.time() - self.start_time
+
         # perform the logging
         for key, value in logs.items():
             print('{} : {}'.format(key, value))
