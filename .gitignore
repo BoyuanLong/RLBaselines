@@ -1,3 +1,4 @@
-.vscode/
+**/.vscode/
 playground.py
 *.png
+logging/

@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 
 from Policies.random_policy import RandomPolicy
 import utils.utils as utils
+from utils.logger import Logger
+from collections import OrderedDict
 
 class Trainer(object):
 
@@ -38,6 +40,9 @@ class Trainer(object):
             self.collect_policy = RandomPolicy(self.env.action_space)
         else:
             self.collect_policy = self.agent.actor
+
+        # Logger
+        self.logger = Logger(args.logdir)
 
     def train(self):
 
@@ -80,4 +85,14 @@ class Trainer(object):
     def logging(self, itr, rewards):
         print('Rewards: {}'.format(np.sum(rewards)))        
         print('EpLen: {}'.format(len(rewards)))
+
+        logs = OrderedDict()
+        logs['Return'] = np.sum(rewards)
+        logs['EpLen'] = len(rewards)
+        # perform the logging
+        for key, value in logs.items():
+            print('{} : {}'.format(key, value))
+            self.logger.log_scalar(value, key, itr)
+        print('Done logging...\n\n')
+        self.logger.flush()
 

@@ -1,6 +1,8 @@
+from genericpath import exists
 from Trainers.offline_trainer import OfflineTrainer
 from Trainers.trainer import Trainer
 from utils.utils import global_seed
+import os, time
 
 def main(args):
     global_seed(args.seed)
@@ -43,4 +45,14 @@ if __name__ == "__main__":
 
 
     args = parser.parse_args()
+
+    data_path = os.path.join('.', 'logging')
+    if not os.path.exists(data_path):
+        os.makedirs(data_path)
+    logdir = "{}_{}_{}".format(args.env, args.mode, time.strftime("%d-%m-%Y_%H-%M-%S"))
+    logdir = os.path.join(data_path, logdir)
+    assert not (os.path.exists(logdir))
+    os.makedirs(logdir)
+    args.logdir = logdir
+
     main(args)
