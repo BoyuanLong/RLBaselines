@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from numpy.core.numeric import indices
 from Policies.MLP_policy import MLPPolicy
 import numpy as np
@@ -17,11 +18,14 @@ class PGAgent(object):
 
     def testing(self):
         self.istraining = False
-        
+
     def train(self, obs, acs, rew_lists, next_obs, terminals):
         adv = np.concatenate([discounted_cumsum(self.gamma, rews) for rews in rew_lists])
         loss = self.actor.update(obs, acs, adv)
-        return loss
+
+        log = OrderedDict()
+        log['loss'] = loss
+        return log
 
     def add_to_replay_buffer(self, paths):
         raise NotImplementedError

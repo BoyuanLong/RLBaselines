@@ -13,6 +13,11 @@ from utils.logger import Logger
 from collections import OrderedDict
 from ReplayBuffers.replay_buffer import ReplayBuffer
 
+
+AGENTS = {
+    'ac': ACAgent,
+    'reinforce': PGAgent,
+}
 class Trainer(object):
 
     def __init__(self, args):
@@ -35,7 +40,10 @@ class Trainer(object):
         self.ac_dim = args.ac_dim
 
         # Make agent
-        self.agent = ACAgent(args)
+        agent_class = AGENTS[args.agent]
+        self.agent = agent_class(args)
+
+        self.concat_rewards = args.concat_rewards
 
         # Replay Buffer
         self.buffer = ReplayBuffer(args.buffer_size)
@@ -57,10 +65,8 @@ class Trainer(object):
             paths, _ = utils.sample_trajectories(self.env, self.collect_policy, self.batch_size, 200, True, render_mode=())
             self.buffer.add_trajectory(paths)
 
-            observations, actions, unconcatenated_rews, next_observations, terminals = self.buffer.sample_recent_data(self.batch_size, concat_rew=True)
-            log = self.agent.train(
-                observations, actions, unconcatenated_rews, next_observations, terminals
-            )
+            observations, actions, unconcatenated_rews, next_observations, terminals = self.buffer.sample_recent_data(self.batch_size, concat_rew=self.concat_rewards)
+            log = self.agent.train(observations, actions, unconcatenated_rews, next_observations, terminals)
 
             self.logging(itr, paths, log)
     
