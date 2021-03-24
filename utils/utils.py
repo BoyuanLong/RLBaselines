@@ -2,6 +2,7 @@ from typing import Union
 import gym
 import numpy as np
 import random
+import torch
 
 
 def sample_trajectory(env, policy, max_path_length, render=False, render_mode=('rgb_array')):
@@ -79,16 +80,17 @@ def Path(obs, image_obs, acs, rewards, next_obs, terminals):
     """
     if image_obs != []:
         image_obs = np.stack(image_obs, axis=0)
-    return {"observation" : np.array(obs),
+    return {"observation" : np.array(obs, dtype=np.float32),
             "image_obs" : np.array(image_obs),
-            "reward" : np.array(rewards),
-            "action" : np.array(acs),
-            "next_observation": np.array(next_obs),
-            "terminal": np.array(terminals)}
+            "reward" : np.array(rewards, dtype=np.float32),
+            "action" : np.array(acs, dtype=np.float32),
+            "next_observation": np.array(next_obs, dtype=np.float32),
+            "terminal": np.array(terminals, dtype=np.float32)}
 
 def global_seed(seed):
     np.random.seed(seed)
     random.seed(seed)
+    torch.manual_seed(seed)
 
 def convert_listofrollouts(paths):
     """

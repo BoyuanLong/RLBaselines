@@ -35,7 +35,7 @@ class Trainer(object):
         self.ac_dim = args.ac_dim
 
         # Make agent
-        self.agent = PGAgent(args)
+        self.agent = ACAgent(args)
 
         # Replay Buffer
         self.buffer = ReplayBuffer(args.buffer_size)
@@ -57,12 +57,12 @@ class Trainer(object):
             paths, _ = utils.sample_trajectories(self.env, self.collect_policy, self.batch_size, 200, True, render_mode=())
             self.buffer.add_trajectory(paths)
 
-            observations, actions, unconcatenated_rews, next_observations, terminals = self.buffer.sample_recent_data(self.batch_size, concat_rew=False)
-            loss = self.agent.train(
+            observations, actions, unconcatenated_rews, next_observations, terminals = self.buffer.sample_recent_data(self.batch_size, concat_rew=True)
+            log = self.agent.train(
                 observations, actions, unconcatenated_rews, next_observations, terminals
             )
 
-            self.logging(itr, paths)
+            self.logging(itr, paths, log)
     
     def test(self):
         self.agent.testing()
@@ -77,10 +77,10 @@ class Trainer(object):
             self.agent.save(expert_dir)
 
 
-    def logging(self, itr, train_paths):
+    def logging(self, itr, train_paths, agent_log):
         eval_paths, _ = utils.sample_trajectories(self.env, self.collect_policy, self.batch_size, 200, True, render_mode=())
 
-        if itr % 300 == 0:
+        if itr % 20 == 0:
             _ = utils.sample_n_trajectories(self.env, self.collect_policy, 5, 200, True, render_mode=('human'))
 
         train_returns = [path["reward"].sum() for path in train_paths]
@@ -101,6 +101,7 @@ class Trainer(object):
         logs["Train_MaxReturn"] = np.max(train_returns)
         logs["Train_MinReturn"] = np.min(train_returns)
         logs["Train_AverageEpLen"] = np.mean(train_ep_lens)
+        logs.update(agent_log)
 
         # logs["Train_EnvstepsSoFar"] = self.total_envsteps
         # logs["TimeSinceStart"] = time.time() - self.start_time
