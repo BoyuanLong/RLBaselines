@@ -2,3 +2,6 @@
 playground.py
 *.png
 logging/
+dist/
+lbyrl.egg-info/
+build/
