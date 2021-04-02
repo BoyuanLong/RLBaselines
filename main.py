@@ -1,6 +1,7 @@
 from genericpath import exists
 from Trainers.offline_trainer import OfflineTrainer
 from Trainers.trainer import Trainer
+from Trainers.edp_trainer import EDPTrainer
 from utils.utils import global_seed
 import os, time
 
@@ -8,8 +9,11 @@ def main(args):
     global_seed(args.seed)
     if args.mode == 'online':
         trainer = Trainer(args)
-    else:
+    elif args.mode == 'offline':
         trainer = OfflineTrainer(args)
+        trainer.generate_buffer()
+    else:
+        trainer = EDPTrainer(args)
         trainer.generate_buffer()
     trainer.train()
     trainer.test()
@@ -23,7 +27,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--agent', type=str, choices=['ac', 'reinforce'])
 
-    parser.add_argument('--mode', type=str, default='online', choices=['online', 'offline'])
+    parser.add_argument('--mode', type=str, default='online', choices=['online', 'offline', 'edp'])
     parser.add_argument('--save_model', type=bool, default=False)
 
     parser.add_argument('--train_iter', type=int, default=20000)
