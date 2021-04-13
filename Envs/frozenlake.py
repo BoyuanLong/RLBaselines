@@ -154,6 +154,9 @@ class FrozenLakeEnv(discrete.DiscreteEnv):
                             ))
 
         super(FrozenLakeEnv, self).__init__(nS, nA, P, isd)
+    
+    def place(self, s):
+        self.s = s
 
     def render(self, mode='human'):
         outfile = StringIO() if mode == 'ansi' else sys.stdout
