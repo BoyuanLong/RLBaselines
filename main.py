@@ -1,7 +1,7 @@
 from genericpath import exists
 from Trainers.offline_trainer import OfflineTrainer
 from Trainers.trainer import Trainer
-from Trainers.edp_trainer import EDPTrainer
+from Trainers.edp_trainer2 import EDPTrainer
 from utils.utils import global_seed
 import os, time
 

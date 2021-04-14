@@ -1,4 +1,6 @@
 from typing import DefaultDict
+
+from numpy.lib.polynomial import RankWarning
 from Agents.pg_agent import PGAgent
 from Agents.ac_agent import ACAgent
 from Agents.q_learning_agent import QLAgent
@@ -37,6 +39,9 @@ class EDPTrainer(object):
 
         # Make agent
         self.agent = QLAgent(args)
+        self.agent.actor.q_table = np.random.rand(self.ob_dim, self.ac_dim).astype(np.float32)
+        print(self.agent.actor.q_table)
+        print("====")
 
         # Make expert
         self.expert = QLAgent(args)
@@ -76,36 +81,60 @@ class EDPTrainer(object):
         self.agent.training()
         for itr in range(self.train_iter):
             print('************ Iteration {} ************'.format(itr))
-            values = np.zeros(self.ob_dim)
+            values = defaultdict(lambda: 0)
             for s, v in self.data.items():
-                for i in range(50):
+                for i in range(100000):
+                    # if s == 23.0:
+                    #     print("====")
+                    obs = []
+                    rewards = []
                     ob = s
                     step = 0
+                    total_rewards = 0
                     while True:
-                        total_rewards = 0
-                        a = self.agent.get_action(ob)
-                        if v[s] is not None:
-                            data = v[s]
-                            index = np.random.randint(0, len(data), size=1)
-                            ob, r, done = data[index]
+                        a = np.float32(self.agent.get_action(ob.astype(int)))
+                        if ob in [31.0, 39.0, 47.0, 55.0]:
+                            a = 2.0
+                            # print(len(self.data[ob][2.]))
+                        if s in [23.0]:
+                            # print(a, ob)
+                            # for k23, v23 in self.data[ob].items():
+                            #     print(k23, len(v23))
+                            # a = 2.0
+                            obs.append(ob)
 
+                        if len(self.data[ob][a]) != 0:
+                            a_data = self.data[ob][a]
+                            index = np.random.randint(len(a_data))
+                            # if s == 23.0:
+                            #     print(ob, a)
+                            r, ob, done = a_data[index]
+                            # if s == 23.0:
+                            #     print(r, ob, done)
+                            #     print(step)
+                            rewards.append(r)
                             total_rewards += r
 
-                            if done or step > 200:
+                            if done or step > 300:
                                 break
                             step += 1
-                    values[s] += total_rewards / 50
+                        else:
+                            break
+                    values[s] += total_rewards
+            print(values)
             
             q_values = np.zeros(self.ob_dim * self.ac_dim).reshape(self.ob_dim, self.ac_dim).astype(np.float32) 
-            for s, v in self.data.items():
-                for a, data in v.items():
-                    rand_indices = np.random.permutation(len(data))[:self.batch_size]
+            for s, v_data in self.data.items():
+                for action, action_data in v_data.items():
+                    rand_indices = np.random.permutation(len(action_data))[:self.batch_size]
                     r = []
                     for i in rand_indices:
-                        val = 0 if data[i][2] else values[data[i][1]]
-                        r.append(data[i][0] + val)
-                    q_values[s][a] = np.mean(r)
+                        val = 0 if action_data[i][2] else values[action_data[i][1]]
+                        r.append(action_data[i][0] + val)
+                    q_values[s.astype(int)][action.astype(int)] = 0 if len(r) == 0 else np.mean(r)
             self.agent.actor.q_table = q_values
+            self.agent.actor.epsilon = max(self.agent.actor.epsilon - self.agent.actor.e_decay_rate, 0.0)
+            print(self.agent.actor.q_table)
 
             self.logging(itr, [])
     
