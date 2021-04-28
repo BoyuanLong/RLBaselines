@@ -17,14 +17,16 @@ class QPolicy(BasePolicy):
         self.epsilon = 0.0
         self.e_decay_rate = args.e_decay_rate
 
-    def training(self):
+    def training(self, e=None):
         self.is_training = True
         if self.e_greedy:
-            self.epsilon = 1.0
+            self.epsilon = 1.0 if e is None else e
     
     def testing(self):
         self.is_training = False
+        e = self.epsilon
         self.epsilon = 0.0
+        return e
     
     def get_action(self, obs):
         if self.is_training and random.random() < self.epsilon:

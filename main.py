@@ -2,6 +2,8 @@ from genericpath import exists
 from Trainers.offline_trainer import OfflineTrainer
 from Trainers.trainer import Trainer
 from Trainers.edp_trainer2 import EDPTrainer
+from Trainers.edp_mdp_trainer import MDPTrainer
+from Trainers.edp_mdp_trainer2 import MDPTrainer as MDPTrainer2
 from utils.utils import global_seed
 import os, time
 
@@ -12,10 +14,13 @@ def main(args):
     elif args.mode == 'offline':
         trainer = OfflineTrainer(args)
         trainer.generate_buffer()
+    elif args.mode == 'mdp':
+        trainer = MDPTrainer2(args)
+        # trainer.generate_buffer()
     else:
         trainer = EDPTrainer(args)
         trainer.generate_buffer()
-    trainer.train()
+    # trainer.train()
     trainer.test()
     
 
@@ -27,7 +32,7 @@ if __name__ == "__main__":
 
     parser.add_argument('--agent', type=str, choices=['ac', 'reinforce'])
 
-    parser.add_argument('--mode', type=str, default='online', choices=['online', 'offline', 'edp'])
+    parser.add_argument('--mode', type=str, default='online', choices=['online', 'offline', 'edp', 'mdp'])
     parser.add_argument('--save_model', type=bool, default=False)
 
     parser.add_argument('--train_iter', type=int, default=20000)

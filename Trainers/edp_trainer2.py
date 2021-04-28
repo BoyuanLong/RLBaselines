@@ -41,12 +41,14 @@ class EDPTrainer(object):
         self.agent = QLAgent(args)
         self.agent.actor.q_table = np.random.rand(self.ob_dim, self.ac_dim).astype(np.float32)
         print(self.agent.actor.q_table)
-        print("====")
+        
+        # print("====")
 
         # Make expert
         self.expert = QLAgent(args)
         expert_path = os.path.join('.', 'Experts', 'QLearning', 'expert.npy')
         self.expert.load(expert_path)
+        # self.agent.load(expert_path)
     
         # Offline buffer
         self.buffer = OfflineBuffer(args.buffer_size)
@@ -67,7 +69,7 @@ class EDPTrainer(object):
             path = utils.sample_trajectory(self.env, self.collect_policy, 200, True, render_mode=())
             obs, acs, rewards, next_obs, terminals = path["observation"], path["action"], path["reward"], path["next_observation"], path["terminal"]
             # assert len(obs) == len(acs) == len(rewards) == len(terminals) == len(next_obs)
-            print(len(obs), len(acs), len(rewards), len(terminals), len(next_obs))
+            # print(len(obs), len(acs), len(rewards), len(terminals), len(next_obs))
             for i in range(len(obs)):
                 s = obs[i]
                 a = acs[i]
@@ -83,7 +85,7 @@ class EDPTrainer(object):
             print('************ Iteration {} ************'.format(itr))
             values = defaultdict(lambda: 0)
             for s, v in self.data.items():
-                for i in range(100000):
+                for i in range(10000):
                     # if s == 23.0:
                     #     print("====")
                     obs = []
@@ -131,7 +133,7 @@ class EDPTrainer(object):
                     for i in rand_indices:
                         val = 0 if action_data[i][2] else values[action_data[i][1]]
                         r.append(action_data[i][0] + val)
-                    q_values[s.astype(int)][action.astype(int)] = 0 if len(r) == 0 else np.mean(r)
+                    q_values[s.astype(int)][action.astype(int)] = self.agent.actor.q_table[s.astype(int)][action.astype(int)] if len(r) == 0 else np.mean(r)
             self.agent.actor.q_table = q_values
             self.agent.actor.epsilon = max(self.agent.actor.epsilon - self.agent.actor.e_decay_rate, 0.0)
             print(self.agent.actor.q_table)

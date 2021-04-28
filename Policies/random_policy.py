@@ -7,9 +7,8 @@ class RandomPolicy(BasePolicy):
 
     def __init__(self, ac_space, **kwargs):
        super().__init__(**kwargs)
-       self.ac_space = ac_space
-       self.is_discrete = isinstance(ac_space, gym.spaces.Discrete)
-       self.ac_dim = ac_space.n if self.is_discrete else ac_space.shape[0]
+       self.is_discrete = True
+       self.ac_dim = ac_space
 
     def get_action(self, obs):
         if self.is_discrete:

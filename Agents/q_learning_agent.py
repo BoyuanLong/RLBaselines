@@ -8,13 +8,13 @@ class QLAgent(BaseAgent):
         self.is_training = False
         self.actor = QPolicy(args)
 
-    def training(self):
+    def training(self, e=None):
         self.is_training = True
-        self.actor.training()
+        self.actor.training(e)
 
     def testing(self):
         self.is_training = False
-        self.actor.testing()
+        return self.actor.testing()
 
     def train(self, obs, acs, rews, next_obs, terminals):
         self.actor.update(obs, acs, rews, next_obs, terminals)
